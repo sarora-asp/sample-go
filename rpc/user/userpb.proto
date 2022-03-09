@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package userpb;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "sample/twirp/rpc/user";
+
+message Empty {}
+
+message Request {
+    string user_id = 1;
+    string email = 2;   
+}
+
+message Response {
+    int32 code = 1;
+    bool success = 2;
+    string msg = 3;
+    User user = 6;
+}
+
+message User {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+    string password = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+message LoginReq {
+    string email = 1;
+    string password = 2;
+}
+
+
+service UserService {
+    rpc createUser(User) returns (Response) {}
+    rpc getUser(Request) returns (Response) {}
+    rpc login(LoginReq) returns (Response) {}
+}
