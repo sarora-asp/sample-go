@@ -9,6 +9,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type UserRepository interface {
+	InsertOne(db sqlx.DB, user *userpb.User) int64
+	FindUserById(db sqlx.DB, id int) *User
+	FindUserByEmail(db sqlx.DB, email string) *User
+}
+
 type User struct {
 	Id        int
 	Name      string

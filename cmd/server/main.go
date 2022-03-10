@@ -8,7 +8,7 @@ import (
 	"os"
 	"sample/twirp/internal/hooks"
 	usersvc "sample/twirp/internal/service/user"
-	"sample/twirp/model"
+	model "sample/twirp/model"
 	user "sample/twirp/rpc/user"
 
 	"github.com/joho/godotenv"
@@ -35,9 +35,9 @@ func main() {
 	db.MustExec(model.Schema)
 
 	router := http.NewServeMux()
-
+	var r model.Repository
 	hook := hooks.LoggingHooks(os.Stderr)
-	usersvr := usersvc.New(*db)
+	usersvr := usersvc.New(*db, r)
 	userHandler := user.NewUserServiceServer(usersvr, hook, twirp.WithServerPathPrefix("/api/user"))
 	fmt.Println("SERVICE", userHandler.PathPrefix())
 	router.Handle(userHandler.PathPrefix(), userHandler)

@@ -3,22 +3,25 @@ package usersvc
 import (
 	"context"
 	utils "sample/twirp/internal/utils"
-	usermodel "sample/twirp/model/user"
 	userpb "sample/twirp/rpc/user"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"sample/twirp/model"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/twitchtv/twirp"
 )
 
 type userServiceProvider struct {
-	db sqlx.DB
+	db   sqlx.DB
+	repo model.Repository
 }
 
-func New(db sqlx.DB) *userServiceProvider {
+func New(db sqlx.DB, repo model.Repository) *userServiceProvider {
 	return &userServiceProvider{
-		db: db,
+		db:   db,
+		repo: repo,
 	}
 }
 
@@ -34,7 +37,7 @@ func (u userServiceProvider) CreateUser(_ context.Context, user *userpb.User) (*
 		}, nil
 	}
 	user.Password = pass
-	num := usermodel.InsertOne(u.db, user)
+	num := u.repo.InsertOne(u.db, user)
 	if num < 1 {
 		return &userpb.Response{
 			Code:    400,
@@ -53,7 +56,7 @@ func (u userServiceProvider) CreateUser(_ context.Context, user *userpb.User) (*
 
 // 	GetUser(context.Context, *Request) (*Response, error)
 func (u *userServiceProvider) GetUser(_ context.Context, _ *userpb.Request) (*userpb.Response, error) {
-	user := usermodel.FindUserById(u.db, 3)
+	user := u.repo.FindUserById(u.db, 3)
 	x := &userpb.User{
 		Id:        int32(user.Id),
 		Name:      user.Name,
@@ -79,7 +82,7 @@ func (u *userServiceProvider) Login(_ context.Context, req *userpb.LoginReq) (*u
 		return nil, twirp.NewError(twirp.InvalidArgument, "Password is not valid")
 	}
 
-	usr := usermodel.FindUserByEmail(u.db, req.Email)
+	usr := u.repo.FindUserByEmail(u.db, req.Email)
 	isValidPwd := utils.CheckPasswordHash(req.Password, usr.Password)
 	if !isValidPwd {
 		return nil, twirp.NewError(twirp.InvalidArgument, "Invalid username or password")
