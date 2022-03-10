@@ -2,6 +2,7 @@ package usersvc
 
 import (
 	"context"
+	"fmt"
 	utils "sample/twirp/internal/utils"
 	userpb "sample/twirp/rpc/user"
 
@@ -28,6 +29,7 @@ func New(db sqlx.DB, repo model.Repository) *userServiceProvider {
 // 	CreateUser(context.Context, *User) (*Response, error)
 func (u userServiceProvider) CreateUser(_ context.Context, user *userpb.User) (*userpb.Response, error) {
 	pass, err := utils.HashPassword(user.Password)
+
 	if err != nil {
 		return &userpb.Response{
 			Code:    400,
@@ -37,7 +39,9 @@ func (u userServiceProvider) CreateUser(_ context.Context, user *userpb.User) (*
 		}, nil
 	}
 	user.Password = pass
+	fmt.Println("IN SVC", user)
 	num := u.repo.InsertOne(u.db, user)
+	fmt.Println("NUM", num)
 	if num < 1 {
 		return &userpb.Response{
 			Code:    400,
