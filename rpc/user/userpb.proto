@@ -39,4 +39,5 @@ service UserService {
     rpc createUser(User) returns (Response) {}
     rpc getUser(Request) returns (Response) {}
     rpc login(LoginReq) returns (Response) {}
+    rpc apiCall(Empty) returns (Response) {}
 }

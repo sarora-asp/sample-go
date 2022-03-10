@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	"fmt"
+
 	mock "github.com/stretchr/testify/mock"
 
 	sqlx "github.com/jmoiron/sqlx"
@@ -52,8 +54,8 @@ func (_m *Repository) FindUserById(db sqlx.DB, id int) *userModel.User {
 // InsertOne provides a mock function with given fields: db, _a1
 func (_m *Repository) InsertOne(db sqlx.DB, _a1 *user.User) int64 {
 	ret := _m.Called(db, _a1)
-
 	var r0 int64
+	fmt.Println("RET", ret.Get(0))
 	if rf, ok := ret.Get(0).(func(sqlx.DB, *user.User) int64); ok {
 		r0 = rf(db, _a1)
 	} else {
