@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sample/twirp/internal/helper"
 	"sample/twirp/internal/hooks"
 	usersvc "sample/twirp/internal/service/user"
 	model "sample/twirp/model"
@@ -36,8 +37,9 @@ func main() {
 
 	router := http.NewServeMux()
 	var r model.Repository
+	var h helper.Helper
 	hook := hooks.LoggingHooks(os.Stderr)
-	usersvr := usersvc.New(*db, r)
+	usersvr := usersvc.New(*db, r, h)
 	userHandler := user.NewUserServiceServer(usersvr, hook, twirp.WithServerPathPrefix("/api/user"))
 	fmt.Println("SERVICE", userHandler.PathPrefix())
 	router.Handle(userHandler.PathPrefix(), userHandler)

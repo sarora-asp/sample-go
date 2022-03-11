@@ -1,5 +1,12 @@
 package helper
 
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+)
+
 type APIResponse struct {
 	Page       int `json:"page"`
 	PerPage    int `json:"per_page"`
@@ -24,4 +31,16 @@ type UserHelper interface {
 
 func GetAPIResponse() APIResponse {
 
+	resp, err := http.Get("https://reqres.in/api/users?page=2")
+	if err != nil {
+		fmt.Println("No response from request")
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body) // response body is []byte
+	var result APIResponse
+	if err := json.Unmarshal(body, &result); err != nil { // Parse []byte to go struct pointer
+		fmt.Println("Can not unmarshal JSON")
+	}
+
+	return result
 }

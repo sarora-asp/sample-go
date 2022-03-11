@@ -3,7 +3,8 @@ package usersvc
 import (
 	"context"
 	"fmt"
-	mocks "sample/twirp/mocks/model"
+	helper "sample/twirp/internal/helper"
+	mocks "sample/twirp/mocks"
 	usermodel "sample/twirp/model/user"
 	userpb "sample/twirp/rpc/user"
 	"testing"
@@ -17,6 +18,8 @@ import (
 
 func TestCreateUser(t *testing.T) {
 	mockRepo := new(mocks.Repository)
+	mockHelper := new(mocks.Helper)
+
 	u := userpb.User{
 		Id:       1,
 		Name:     "Sample User",
@@ -28,7 +31,7 @@ func TestCreateUser(t *testing.T) {
 	})
 
 	var db sqlx.DB
-	userService := New(db, mockRepo)
+	userService := New(db, mockRepo, mockHelper)
 
 	result, err := userService.CreateUser(context.TODO(), &u)
 	fmt.Println("RESP", result, err)
@@ -41,6 +44,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	mockRepo := new(mocks.Repository)
+	mockHelper := new(mocks.Helper)
 
 	mockRepo.On("FindUserById", mock.AnythingOfType("sqlx.DB"), mock.AnythingOfType("int")).Return(func(db sqlx.DB, id int) *usermodel.User {
 		return &usermodel.User{
@@ -54,7 +58,7 @@ func TestGetUser(t *testing.T) {
 	})
 
 	var db sqlx.DB
-	userService := New(db, mockRepo)
+	userService := New(db, mockRepo, mockHelper)
 
 	result, err := userService.GetUser(context.TODO(), &userpb.Request{})
 	fmt.Println("RESP", result, err)
@@ -62,5 +66,46 @@ func TestGetUser(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 
 	assert.Equal(t, int32(3), result.User.Id)
+
+}
+
+func TestAPICall(t *testing.T) {
+	mockRepo := new(mocks.Repository)
+	mockHelper := new(mocks.Helper)
+
+	mockHelper.On("GetAPIResponse").Return(func() helper.APIResponse {
+		return helper.APIResponse{
+			Data: []struct {
+				ID        int    `json:"id"`
+				Email     string `json:"email"`
+				FirstName string `json:"first_name"`
+				LastName  string `json:"last_name"`
+				Avatar    string `json:"avatar"`
+			}{
+				{
+					ID:        1,
+					Email:     "hello@world",
+					FirstName: "Sample name",
+					LastName:  "Whatever",
+				},
+				{
+					ID:        2,
+					Email:     "hello@world",
+					FirstName: "Sample name",
+					LastName:  "Whatever",
+				},
+			},
+		}
+	})
+
+	var db sqlx.DB
+	userService := New(db, mockRepo, mockHelper)
+
+	result, err := userService.ApiCall(context.TODO(), &userpb.Empty{})
+	fmt.Println("API CALL", result, err)
+
+	mockHelper.AssertExpectations(t)
+
+	assert.Equal(t, int32(200), result.Code)
 
 }

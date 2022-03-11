@@ -8,6 +8,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"sample/twirp/internal/helper"
 	"sample/twirp/model"
 
 	"github.com/jmoiron/sqlx"
@@ -17,12 +18,14 @@ import (
 type userServiceProvider struct {
 	db   sqlx.DB
 	repo model.Repository
+	h    helper.Helper
 }
 
-func New(db sqlx.DB, repo model.Repository) *userServiceProvider {
+func New(db sqlx.DB, repo model.Repository, h helper.Helper) *userServiceProvider {
 	return &userServiceProvider{
 		db:   db,
 		repo: repo,
+		h:    h,
 	}
 }
 
@@ -102,5 +105,17 @@ func (u *userServiceProvider) Login(_ context.Context, req *userpb.LoginReq) (*u
 		Success: true,
 		Msg:     "this is not working",
 		User:    result,
+	}, nil
+}
+
+// ApiCall(context.Context, *Empty) (*Response, error)
+func (u *userServiceProvider) ApiCall(_ context.Context, req *userpb.Empty) (*userpb.Response, error) {
+	data := u.h.GetAPIResponse().Data
+	fmt.Println("DATA", data)
+
+	return &userpb.Response{
+		Code:    200,
+		Msg:     "Success",
+		Success: true,
 	}, nil
 }
